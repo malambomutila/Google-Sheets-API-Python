@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------------------------------------------------
+#                                        LIBRARIES
+# --------------------------------------------------------------------------------------------------------------------------
+
 import logging
 import os
 import json
@@ -13,12 +17,12 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.exceptions import AirflowFailException
 
 from datetime import datetime, timedelta
-from sqlalchemy.types import VARCHAR, DATE, Text
+from sqlalchemy.types import VARCHAR, DATE, Text, SMALLINT, Float
 
 
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 #                                       CONSTANTS & PATHS
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -31,9 +35,9 @@ CREDENTIALS_FILE = os.path.join(DATA_DIR, "gsheetscreds.json")
 OUTPUT_FILE = os.path.join(DATA_DIR, "xfootball_fans.csv")
 
 
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 #                                       DAG configuration
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
@@ -52,9 +56,9 @@ dag = DAG(
     catchup=False
 )
 
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 #                                       LOAD CONFIG & CREDS
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 
 def load_config():
     try:
@@ -79,9 +83,9 @@ def get_creds():
     except KeyError as e:
         raise AirflowFailException(f"Missing expected config key: {e}")
 
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 #                                       GOOGLE SHEETS CLIENT
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 
 def get_google_sheets_client():
     """Get Google Sheets API client."""
@@ -111,9 +115,9 @@ def get_sheet_title_by_id(spreadsheet, SHEET_ID):
             logger.info(f"Sheet title resolved: {sheet_title}")
             return sheet_title
 
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 #                                       FETCH DATA FROM SHEET
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 
 def fetch_data_from_gsheet():
     """Fetch data from Google Sheets."""
@@ -147,15 +151,15 @@ def fetch_data_from_gsheet():
     except Exception as e:
         raise AirflowFailException(f"Could not fetch data from Google Sheet./nFailed to fetch sheet data: {e}")
 
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 #                                       CLEAN & TRANSFORM DATA
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 
 def clean_and_transform_data():
     """Clean and transform the data."""
     data = fetch_data_from_gsheet()
     # Convert raw data into a DataFrame
-    df = pd.DataFrame(data[1:], columns=data[0])  # Skip header row
+    df = pd.DataFrame(data[1:], columns=data[0])
 
     # Rename columns to match expected schema
     df = df.rename(columns={
@@ -203,51 +207,78 @@ def clean_and_transform_data():
     logger.info(f"Data cleaned and transformed successfully.")
     return df
 
-# ---------------------------------------------------------------------------------------------
-#                                       EXPORT CLEANED DATA
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
+#                                       EXPORT DATA TO CSV
+# --------------------------------------------------------------------------------------------------------------------------
 
 def export_to_csv():
+    new_df = clean_and_transform_data()
+    try:
+        new_df.to_csv(OUTPUT_FILE, index=False, encoding="utf-8")
+        logger.info(f"CSV replaced with latest data: {OUTPUT_FILE}")
+    except Exception as e:
+        logger.error(f"Failed to export data: {e}")
+        raise AirflowFailException("CSV export failed.")
+    
+# --------------------------------------------------------------------------------------------------------------------------
+#                                       EXPORT TO POSTGRES
+# --------------------------------------------------------------------------------------------------------------------------
+
+def export_to_postgres():
     df = clean_and_transform_data()
     try:
-        df.to_csv(OUTPUT_FILE, index=False, encoding="utf-8")
-        logger.info(f"Data exported successfully to {OUTPUT_FILE}")
-    except Exception as e:
-        logger.error(f"Failed to write CSV file: {e}")
-        raise AirflowFailException("CSV export failed.")
+        hook = PostgresHook(postgres_conn_id="superset_db")
+        engine = hook.get_sqlalchemy_engine()
 
-# ---------------------------------------------------------------------------------------------
+        dtype_mapping = {
+            "officer": VARCHAR(64),
+            "football_club": VARCHAR(64),
+            "support_year": SMALLINT,
+            "support_quarter": VARCHAR(32),
+            "amount_allocated_to_spend_on_team_usd": Float,
+            "amount_used_usd": Float,
+            "total_fan_budget_zmw": Float,
+            "budget_approved_zmw": Float,
+            "sex_of_officer": VARCHAR(16),
+            "dept": VARCHAR(32),
+            "support_status": VARCHAR(32),
+            "last_updated": DATE
+        }
+
+        df.to_sql(
+            "xfootall_fans",
+            con=engine,
+            index=False,
+            if_exists="replace",
+            dtype=dtype_mapping
+        )
+        logger.info(f"Data exported to PostgreSQL table successfully.")
+    except Exception as e:
+        logger.error(f"Failed to export to PostgreSQL: {e}")
+        raise AirflowFailException("Postgres export failed.")
+
+# --------------------------------------------------------------------------------------------------------------------------
 #                                       DAG TASKS
-# ---------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------
 start_task = EmptyOperator(task_id="Started", dag=dag)
 
-fetch_hourly_task = PythonOperator(
-    task_id="hourly_gsheets_data",
+export_to_csv = PythonOperator(
+    task_id="Export_To_CSV",
     python_callable=export_to_csv,
+    dag=dag,
+)
+
+export_to_postgres = PythonOperator(
+    task_id="Export_To_Postgres",
+    python_callable=export_to_postgres,
     dag=dag,
 )
 
 end_task = EmptyOperator(task_id="Ended", dag=dag)
 
+start_task >> [export_to_csv, export_to_postgres] >> end_task
 
-start_task >> fetch_hourly_task >> end_task
 
+# --------------------------------------------------------------------------------------------------------------------------
 
-"""
-Next: 
-1.
-Append to CSV if it exists with the exact columns else, replace if the names are the same
-If the columns are different, create a new CSV with the new columns and append the data
-If the columns are the same, append the data to the existing CSV
-If the CSV does not exist, create a new one
-If the CSV exists, append the data to the existing CSV
-
-2. 
-Create a new table in Postgres if it does not exist
-If the table exists, append the data to the existing table
-If the table exists but the columns are different, create a new table by replacing the conflicted table, add
-data with the new columns and append the data
-
-3. ReadMe
-Add screenshots from the API process. Delete the API after use and create a new one.
-"""
+# --------------------------------------------------------------------------------------------------------------------------
