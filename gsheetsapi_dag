@@ -46,7 +46,7 @@ default_args = {
     "retry_delay": timedelta(minutes=1),
 }
 
-logger.info("DAG configured successfully!")
+logger.info("DAG configured successfully.")
 
 dag = DAG(
     "GSheets_to_Postgres",
