@@ -1,0 +1,253 @@
+import logging
+import os
+import json
+import pandas as pd
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+from airflow import DAG
+from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.exceptions import AirflowFailException
+
+from datetime import datetime, timedelta
+from sqlalchemy.types import VARCHAR, DATE, Text
+
+
+# ---------------------------------------------------------------------------------------------
+#                                       CONSTANTS & PATHS
+# ---------------------------------------------------------------------------------------------
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Define file paths based on the current directory
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(CURRENT_DIR, "data")
+CREDENTIALS_FILE = os.path.join(DATA_DIR, "gsheetscreds.json") 
+OUTPUT_FILE = os.path.join(DATA_DIR, "xfootball_fans.csv")
+
+
+# ---------------------------------------------------------------------------------------------
+#                                       DAG configuration
+# ---------------------------------------------------------------------------------------------
+default_args = {
+    "owner": "airflow",
+    "depends_on_past": False,
+    "start_date": datetime(2025, 4, 22),
+    "retries": 3,
+    "retry_delay": timedelta(minutes=1),
+}
+
+logger.info("DAG configured successfully!")
+
+dag = DAG(
+    "GSheets_to_Postgres",
+    default_args=default_args,
+    description="Pulling Google Sheets data using the Google API.",
+    schedule_interval='@hourly',
+    catchup=False
+)
+
+# ---------------------------------------------------------------------------------------------
+#                                       LOAD CONFIG & CREDS
+# ---------------------------------------------------------------------------------------------
+
+def load_config():
+    try:
+        with open(CREDENTIALS_FILE) as f:
+            gsheetscreds = json.load(f)
+            logger.info("Credentials loaded successfully.")
+            return gsheetscreds
+    except FileNotFoundError:
+        raise AirflowFailException("Credentials file not found.")
+    except json.JSONDecodeError:
+        raise AirflowFailException("Credentials file is not a valid JSON.")
+
+def get_creds():
+    """Get credentials for Google Sheets API."""
+    SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    try:
+        gsheetscreds = load_config()
+        creds = Credentials.from_service_account_info(gsheetscreds["google_acc"], scopes=SCOPES)
+        SPREADSHEET_ID = gsheetscreds["spreadsheet"]["spreadsheet_id"]
+        SHEET_ID = int(gsheetscreds["spreadsheet"]["sheet_id"])
+        return creds, SPREADSHEET_ID, SHEET_ID
+    except KeyError as e:
+        raise AirflowFailException(f"Missing expected config key: {e}")
+
+# ---------------------------------------------------------------------------------------------
+#                                       GOOGLE SHEETS CLIENT
+# ---------------------------------------------------------------------------------------------
+
+def get_google_sheets_client():
+    """Get Google Sheets API client."""
+    creds, SPREADSHEET_ID, SHEET_ID = get_creds()
+    try:
+        service = build("sheets", "v4", credentials=creds, cache_discovery=False)
+        spreadsheet = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
+        return service, spreadsheet
+    except HttpError as err:
+        raise AirflowFailException("Failed to connect to Google Sheets API: {err}")
+
+
+def get_sheet_title_by_id(spreadsheet, SHEET_ID):
+        # Use the GID to find the sheet title
+        # service, spreadsheet = get_google_sheets_client()
+        # creds, SPREADSHEET_ID, SHEET_ID = get_creds(None)
+        logger.info(f"Resolving sheet title for GID: {SHEET_ID}")
+        sheet_title = None
+        for s in spreadsheet.get("sheets", []):
+            if s["properties"].get("sheetId") == SHEET_ID:
+                sheet_title = s["properties"].get("title")
+                break
+
+        if not sheet_title:
+            raise AirflowFailException(f"No worksheet found with GID {SHEET_ID}")
+        else:
+            logger.info(f"Sheet title resolved: {sheet_title}")
+            return sheet_title
+
+# ---------------------------------------------------------------------------------------------
+#                                       FETCH DATA FROM SHEET
+# ---------------------------------------------------------------------------------------------
+
+def fetch_data_from_gsheet():
+    """Fetch data from Google Sheets."""
+    service, spreadsheet = get_google_sheets_client()
+    creds, SPREADSHEET_ID, SHEET_ID = get_creds()
+    sheet_title = get_sheet_title_by_id(spreadsheet, SHEET_ID)
+    logger.info(f"Fetching data from sheet: {sheet_title}")
+
+    try:
+        result = service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range=sheet_title
+        ).execute()
+        data = result.get("values", [])
+        if not data:
+            raise ValueError("No data returned from the spreadsheet.")
+        else:
+            logger.info(f"Data fetched successfully from {sheet_title}.")
+            return data
+        
+    except HttpError as err:
+        raise AirflowFailException(f"Failed to fetch data from Google Sheets: {err}")
+    except ValueError as ve:
+        raise AirflowFailException(f"No data returned from the spreadsheet./nValue error: {ve}")
+    except KeyError as ke:
+        raise AirflowFailException(f"Failed to fetch data from Google Sheets./nKey error: {ke}")
+    except PermissionError as pe:
+        raise AirflowFailException(f"Permission denied to access Google Sheets./nPermission error: {pe}")
+    except TypeError as te:
+        raise AirflowFailException(f"Failed to fetch data from Google Sheets./nType error: {te}")
+    except Exception as e:
+        raise AirflowFailException(f"Could not fetch data from Google Sheet./nFailed to fetch sheet data: {e}")
+
+# ---------------------------------------------------------------------------------------------
+#                                       CLEAN & TRANSFORM DATA
+# ---------------------------------------------------------------------------------------------
+
+def clean_and_transform_data():
+    """Clean and transform the data."""
+    data = fetch_data_from_gsheet()
+    # Convert raw data into a DataFrame
+    df = pd.DataFrame(data[1:], columns=data[0])  # Skip header row
+
+    # Rename columns to match expected schema
+    df = df.rename(columns={
+        "Officer": "officer",
+        "Football Club": "football_club",
+        "Support Year": "support_year",
+        "Support Quarter": "support_quarter",
+        "Amount Allocated to Spend on Team (USD)": "amount_allocated_to_spend_on_team_usd",
+        "Amount Used (USD)": "amount_used_usd",
+        "Total Fan Budget (ZMW)": "total_fan_budget_zmw",
+        "Budget Approved (ZMW)": "budget_approved_zmw",
+        "Sex": "sex_of_officer",
+        "Department": "dept",
+        "Support Status": "support_status",
+        "Last updated": "last_updated"
+    })
+
+    logger.info(f"Columns renamed.")
+
+    # Convert year to integer
+    df["support_year"] = pd.to_numeric(df["support_year"], errors="coerce").astype("Int64")
+    logger.info(f"support_year converted to int.")
+
+    # Clean currency fields and convert to floats
+    amount_cols = [
+        "amount_allocated_to_spend_on_team_usd",
+        "amount_used_usd",
+        "total_fan_budget_zmw",
+        "budget_approved_zmw"
+    ]
+
+    for col in amount_cols:
+        df[col] = (
+            df[col]
+            .replace(r"[^0-9.]", "", regex=True)
+            .replace("", "0")
+            .astype(float)
+        )
+    logger.info(f"Currencies cleaned out and conversion made to float.")
+
+    # Parse datetime
+    df["last_updated"] = pd.to_datetime(df["last_updated"], errors="coerce")
+    logger.info(f"last_updated converted to datetime.")
+
+    logger.info(f"Data cleaned and transformed successfully.")
+    return df
+
+# ---------------------------------------------------------------------------------------------
+#                                       EXPORT CLEANED DATA
+# ---------------------------------------------------------------------------------------------
+
+def export_to_csv():
+    df = clean_and_transform_data()
+    try:
+        df.to_csv(OUTPUT_FILE, index=False, encoding="utf-8")
+        logger.info(f"Data exported successfully to {OUTPUT_FILE}")
+    except Exception as e:
+        logger.error(f"Failed to write CSV file: {e}")
+        raise AirflowFailException("CSV export failed.")
+
+# ---------------------------------------------------------------------------------------------
+#                                       DAG TASKS
+# ---------------------------------------------------------------------------------------------
+start_task = EmptyOperator(task_id="Started", dag=dag)
+
+fetch_hourly_task = PythonOperator(
+    task_id="hourly_gsheets_data",
+    python_callable=export_to_csv,
+    dag=dag,
+)
+
+end_task = EmptyOperator(task_id="Ended", dag=dag)
+
+
+start_task >> fetch_hourly_task >> end_task
+
+
+"""
+Next: 
+1.
+Append to CSV if it exists with the exact columns else, replace if the names are the same
+If the columns are different, create a new CSV with the new columns and append the data
+If the columns are the same, append the data to the existing CSV
+If the CSV does not exist, create a new one
+If the CSV exists, append the data to the existing CSV
+
+2. 
+Create a new table in Postgres if it does not exist
+If the table exists, append the data to the existing table
+If the table exists but the columns are different, create a new table by replacing the conflicted table, add
+data with the new columns and append the data
+
+3. ReadMe
+Add screenshots from the API process. Delete the API after use and create a new one.
+"""
