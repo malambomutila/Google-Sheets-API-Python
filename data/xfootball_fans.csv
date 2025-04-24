@@ -1,0 +1,65 @@
+ ,officer,football_club,support_year,support_quarter,amount_allocated_to_spend_on_team_usd,amount_used_usd,total_fan_budget_zmw,budget_approved_zmw,sex_of_officer,dept,support_status,last_updated
+,Officer_1,Man Utd,2024,Q2,3832.83,0.0,103590.0,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_2,Arsenal,2025,"Q1, Q2, Q3",51878.54952,0.0,1402122.96,800000.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_3,Arsenal,2025,Q2,3205.35144,0.0,86631.12,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_4,Arsenal,2025,Q2,14691.17412,0.0,397058.76,250000.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_5,Arsenal,2025,"Q2, Quarterly",7122.98988,0.0,192513.24,1250172.84,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_6,Arsenal,2025,Q4,26711.23203,0.0,721925.19,1200000.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_7,Arsenal,2025,Q1,1780.74747,0.0,48128.31,1500000.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_8,Arsenal,2025,Quarterly,23311.62504,0.0,630043.92,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_9,Arsenal,2025,Q3,10684.49481,0.0,288770.13,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_10,Arsenal,2025,Q4,35614.96938,0.0,962566.74,1100000.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_11,Arsenal,2025,Quarterly,120200.5391,0.0,3248663.22,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_12,Arsenal,2025,Q2,10684.49481,0.0,288770.13,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_13,Arsenal,2025,Quarterly,119903.7462,0.0,3240641.79,900000.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_14,Arsenal,2025,Quarterly,73820.12598,0.0,1995138.54,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_15,Arsenal,2025,Q4,12020.8671,0.0,324888.3,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_16,Arsenal,2025,Quarterly,1187.16165,0.0,32085.45,900000.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_17,Arsenal,2025,"Q1, Q4",10684.49481,0.0,288770.13,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_18,Chelsea,2024,Q1,22703.41,0.0,494110.3,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_19,Chelsea,2024,Q2,101537.42,0.0,2209830.0,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_20,Chelsea,2024,Q2,45596.8,0.0,992354.98,0.0,Male,Safety,Not started,2025-04-24 08:26:00
+,Officer_21,Chelsea,2024,Q2,52266.43,0.0,1137510.82,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_22,Chelsea,2025,Q2,12545.18,0.0,273029.5,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_23,Chelsea,2024,Q3,10290.62,0.0,223961.92,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_24,Chelsea,2024,Q4,9296.7,0.0,202330.58,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_25,Chelsea,2024,Q4,177.42,0.0,3861.29,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_26,Chelsea,2025,Q1,15960.59,0.0,347361.39,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_27,Chelsea,2025,"Q2, Q4",9419.95,0.0,205013.0,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_28,Chelsea,2024,Q4,11697.88,0.0,254589.14,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_29,Chelsea,2025,Q1,15186.65,0.0,330517.62,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_30,Chelsea,2025,"Q2, Q3, Q4",12320.47,0.0,268139.1,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_31,Chelsea,2025,"Q2, Q4",18335.29,0.0,399043.66,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_32,Chelsea,2025,Q1,12647.76,0.0,275262.08,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_33,Chelsea,2025,"Q1, Q2, Q3",9165.48,0.0,199474.77,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_34,Chelsea,2025,Q3,19047.17,0.0,414536.79,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_35,Chelsea,2025,Q3,19704.27,0.0,428837.88,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_36,Chelsea,2024,Q3,5001.3,0.0,108846.76,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_37,Chelsea,2025,Q2,19160.15,0.0,416995.85,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_38,Chelsea,2025,Quarterly,1844.59,0.0,40145.2,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_39,Chelsea,2024,Q4,6231.57,0.0,135621.97,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_40,Chelsea,2024,Q1,124275.42,0.0,2704693.02,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_41,Chelsea,2025,Q1,1010.3,0.0,21987.9,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_42,Chelsea,2024,Q1,19590.6,0.0,426364.0,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_43,Man CIty,2025,Quarterly,5662.147,0.0,153031.0,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_44,Man CIty,2025,Q2,740.0,0.0,20000.0,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_45,Man CIty,2025,Q1,3709.102,0.0,100246.0,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_46,Arsenal,2025,Q3,26833.19,0.0,583989.41,0.0,Female,Safety,Not started,2025-04-24 08:26:00
+,Officer_47,Real Madrid,2025,Q3,1930.66,0.0,52180.0,0.0,Female,Finance,Not started,2025-04-24 08:26:00
+,Officer_48,Real Madrid,2025,Q1,1850.0,0.0,50000.0,0.0,Female,Finance,Not started,2025-04-24 08:26:00
+,Officer_49,Real Madrid,2025,Quarterly,36948.2,0.0,998600.0,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_50,Real Madrid,2025,"Q2, Q3",5424.2,0.0,146600.0,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_51,Man Utd,2025,Q1,24930.48456,0.0,673796.88,624837.28,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_52,Man Utd,2025,Q1,5342.24241,0.0,144384.93,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_53,Man Utd,2025,Q1,53422.46406,0.0,1443850.38,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_54,Man Utd,2025,Q4,23149.73709,0.0,625668.57,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_55,Man Utd,2025,Quarterly,50314.24539,0.0,1359844.47,446464.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_56,Man Utd,2025,Quarterly,4856.58855,0.0,131259.15,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_57,Man Utd,2025,Q1,75681.82242,0.0,2045454.66,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_58,Man Utd,2025,Q1,14245.74,0.0,385020.0,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_59,Man Utd,2025,Q1,26711.23203,0.0,721925.19,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_60,Man Utd,2025,"Q3, Q4",17807.48469,0.0,481283.37,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_61,Man Utd,2025,Q2,8903.74734,0.0,240641.82,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_62,Man Utd,2025,Q1,14985.0,0.0,405000.0,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_63,Arsenal,2025,Q1,74.0,0.0,2000.0,0.0,Female,HR,Not started,2025-04-24 08:26:00
+,Officer_64,Man CIty,2025,Quarterly,2016.5,0.0,54500.0,0.0,Female,Finance,Not started,2025-04-24 08:26:00

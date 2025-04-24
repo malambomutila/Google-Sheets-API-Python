@@ -172,3 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# ----------- Project -------------
+# Ignore the JSON file with credentials
+*.json
+./data/gsheetscreds.json
